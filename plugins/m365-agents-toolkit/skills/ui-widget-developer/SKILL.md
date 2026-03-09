@@ -199,13 +199,13 @@ See [mcp-server-pattern.md](references/mcp-server-pattern.md) for the complete r
 1. **Start the MCP server** (in background)
 2. **Use MCP Inspector** to get the latest tool definitions:
    ```bash
-   npx @modelcontextprotocol/inspector --cli https://my-mcp-server.example.com --transport http --method tools/list
+   npx @modelcontextprotocol/inspector@0.20.0 --cli https://my-mcp-server.example.com --transport http --method tools/list
    ```
 3. **Copy the COMPLETE tool definition** from the inspector (including `name`, `description`, `inputSchema`, `_meta`, `annotations`, `title`)
 4. **Paste into `mcpPlugin.json`** under `runtimes[].spec.mcp_tool_description.tools` (inside the `RemoteMCPServer` runtime's `spec` object)
 5. **Run E2E verification** through the devtunnel — call each tool and confirm the response contains `structuredContent` and `_meta.openai/widgetAccessible: true`:
    ```bash
-   npx @modelcontextprotocol/inspector --cli https://<tunnel-url>/mcp --transport http --method tools/call --tool-name <tool_name>
+   npx @modelcontextprotocol/inspector@0.20.0 --cli https://<tunnel-url>/mcp --transport http --method tools/call --tool-name <tool_name>
    ```
    Also verify `GET https://<tunnel-url>/health` returns `{"status":"ok"}`. Fix any failures before provisioning.
 

@@ -9,7 +9,7 @@ mcpPlugin.json configuration for M365 Copilot declarative agents.
 **NEVER manually write tool definitions.** Always use MCP Inspector to get the complete tool definitions from your running MCP server:
 
 ```bash
-npx @anthropic-ai/mcp-inspector
+npx @modelcontextprotocol/inspector@0.20.0
 ```
 
 Copy the COMPLETE tool definition from the inspector (including `name`, `description`, `inputSchema`, `_meta`, `annotations`, `title`) and paste into `mcpPlugin.json`.

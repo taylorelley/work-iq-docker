@@ -70,22 +70,28 @@ atk provision --env custom
 
 **⚠️ CRITICAL: ALWAYS RENDER THIS AFTER ANY PROVISION OPERATION ⚠️**
 
-After EVERY provisioning command (regardless of environment or whether it's first-time or re-provisioning), you MUST render this output:
+After EVERY provisioning command (regardless of environment or whether it's first-time or re-provisioning), you MUST output a test link:
 
+**Local environment** — read `M365_TITLE_ID` from `env/.env.local` and construct the URL:
 ```
 ✅ Provision completed successfully!
 
 🚀 Test Your Agent:
-🔗 https://m365.cloud.microsoft/chat/?titleId=T_{M365_TITLE_ID}
+🔗 https://m365.cloud.microsoft/chat/?titleId={M365_TITLE_ID}
+```
 
-Replace {M365_TITLE_ID} with the actual value from env/.env.{environment}
-Example: https://m365.cloud.microsoft/chat/?titleId=T_abc123xyz
+**Non-local environments (dev, staging, prod, etc.)** — use the `SHARE_LINK` value from `env/.env.{environment}`:
+```
+✅ Provision completed successfully!
+
+🚀 Test Your Agent:
+🔗 {SHARE_LINK}
 ```
 
 **This is REQUIRED for:**
 - ✅ First-time provisioning
 - ✅ Re-provisioning after changes
-- ✅ Any environment (dev, staging, prod, custom)
+- ✅ Any environment (local, dev, staging, prod, custom)
 - ✅ Every single `atk provision` command
 
 **Do NOT skip this output. The user needs this link to test their agent.**
@@ -332,7 +338,7 @@ atk auth logout m365
 After deployment, ATK provides a test link:
 ```
 🚀 Test Your Agent:
-🔗 https://m365.cloud.microsoft/chat/?titleId=T_abc123xyz
+🔗 https://m365.cloud.microsoft/chat/?titleId=abc123xyz
 ```
 
 **Testing checklist:**
