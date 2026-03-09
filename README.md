@@ -12,15 +12,6 @@ To access Microsoft 365 tenant data, the WorkIQ CLI and MCP Server need to be co
 
 For more information, see Microsoft's [User and Admin Consent Overview](https://learn.microsoft.com/en-us/entra/identity/enterprise-apps/user-admin-consent-overview).
 
-## 🔌 What's Inside
-
-| Plugin | Description |
-|--------|-------------|
-| [**workiq**](./plugins/workiq/) | Query Microsoft 365 data with natural language — emails, meetings, documents, Teams messages, and more. |
-| [**m365-agents-toolkit**](./plugins/m365-agents-toolkit/) | Toolkit for building M365 Copilot declarative agents — scaffolding, manifest authoring, and capability configuration. |
-
----
-
 ## 📋 Prerequisites
 
 Before getting started, ensure you have **Node.js** (which includes NPM and NPX) installed:
@@ -99,34 +90,29 @@ Or add it as an MCP server in your coding agent or IDE:
 
 ---
 
-## 🗂️ Repository Structure
+## 🎯 What You Can Query
 
-```
-work-iq/
-├── .github/
-│   └── plugin/
-│       └── marketplace.json            # Central plugin registry
-├── plugins/
-│   ├── workiq/                         # Work IQ plugin
-│   │   ├── .mcp.json                   # MCP server configuration
-│   │   ├── README.md                   # Plugin documentation
-│   │   └── skills/
-│   │       └── workiq/
-│   │           └── SKILL.md            # Skill definition
-│   └── m365-agents-toolkit/            # M365 Agents Toolkit plugin
-│       ├── README.md                   # Plugin documentation
-│       ├── agents/
-│       │   └── m365-agents-toolkit.md  # Agent orchestrator
-│       └── skills/
-│           ├── install-atk/
-│           │   └── SKILL.md            # ATK install skill
-│           └── m365-agent-developer/
-│               ├── SKILL.md            # Developer skill
-│               └── references/         # Guides, schemas, examples
-├── CONTRIBUTING.md                     # How to add a plugin
-├── README.md                           # This file
-├── LICENSE
-└── SECURITY.md
+| Data Type | Example Questions |
+|-----------|-------------------|
+| **Emails** | "What did John say about the proposal?" |
+| **Meetings** | "What's on my calendar tomorrow?" |
+| **Documents** | "Find my recent PowerPoint presentations" |
+| **Teams** | "Summarize today's messages in the Engineering channel" |
+| **People** | "Who is working on Project Alpha?" |
+
+---
+
+## 📖 CLI Reference
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `workiq accept-eula` | Accept the End User License Agreement (EULA) |
+| `workiq ask` | Ask a question to a specific agent or run in interactive mode |
+| `workiq mcp` | Start MCP stdio server for agent communication |
+| `workiq version` | Show version information |
+
 ### Global Options
 
 | Option | Description | Default |
@@ -162,16 +148,18 @@ workiq mcp
 
 ---
 
+## 🔌 Available Plugins
+
+| Plugin | Description |
+|--------|-------------|
+| [**workiq**](./plugins/workiq/) | Query Microsoft 365 data with natural language — emails, meetings, documents, Teams messages, and more. |
+| [**m365-agents-toolkit**](./plugins/m365-agents-toolkit/) | Toolkit for building M365 Copilot declarative agents — scaffolding, manifest authoring, and capability configuration. |
+
+---
+
 ## Platform Support
 
-The WorkIQ CLI and MCP Server are supported on `win_x64`, `win_arm64`, `linux_x64`, `linux_arm64`, `osx_x64` and `osx_arm64`. It is also supported in WSL as long as WSL is able to launch a browser to enable sign-in. 
-
-One way to install browser support on WSL is with the following commands:
-
-```bash
-sudo apt install xdg-utils
-sudo apt install wslu
-```
+The WorkIQ CLI and MCP Server are supported on `win_x64`, `win_arm64`, `linux_x64`, `linux_arm64`, `osx_x64` and `osx_arm64`.
 
 ---
 
