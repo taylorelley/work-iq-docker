@@ -67,6 +67,7 @@ plugins/<plugin-name>/
 - **m365-agents-toolkit** — Toolkit for building M365 Copilot declarative agents. Bundles:
   - `install-atk` skill — Install or update the M365 Agents Toolkit CLI and VS Code extension
   - `m365-agent-developer` skill — Scaffolding, JSON manifest authoring, capability configuration, deployment
+  - `ui-widget-developer` skill — Build MCP servers with OpenAI Apps SDK widget rendering for Copilot Chat
 
 ## Prerequisites
 
