@@ -4,6 +4,21 @@ This document contains detailed rules for workspace detection, gate scenarios, a
 
 ---
 
+## 🚨 CRITICAL — Read Before Anything Else
+
+**The #1 eval failure pattern is creating files that should not exist.** These rules are HARD BLOCKS:
+
+1. **If `declarativeAgent.json` does NOT exist and the user asked to edit/modify/add/deploy → REJECT.** Respond with text only. Do NOT create the file. Do NOT create `appPackage/`. Do NOT look at other directories for examples to copy.
+2. **If `declarativeAgent.json` has malformed JSON → DETECT first, then INFORM, then ASK.** You must parse the file and report errors to the user BEFORE making any edits. Never edit a broken file without first telling the user it's broken.
+3. **If validation finds errors → NEVER run `atk provision`.** There are zero exceptions. Report errors and ask the user.
+
+**The "Detect → Inform → Ask" protocol is mandatory for ALL error states:**
+- **Detect**: Identify the problem (missing file, parse error, validation error)
+- **Inform**: Tell the user what you found BEFORE taking action
+- **Ask**: Wait for instructions before modifying anything
+
+---
+
 ## Gate Definitions
 
 ### Gate 1: Wrong Project Type — STOP
@@ -29,6 +44,13 @@ declarative agent:
 No `appPackage/declarativeAgent.json` exists but user implies an existing agent ("add X to this agent", "deploy this", "update instructions").
 
 **Your entire response must be text-only. No edits, no commands, no files.**
+
+**Anti-patterns that WILL cause eval failure:**
+- ❌ Creating `declarativeAgent.json` from scratch to "help" the user
+- ❌ Creating the `appPackage/` directory
+- ❌ Looking at other directories/fixtures for examples and copying them
+- ❌ Running `atk new` when the user asked to edit (editing ≠ scaffolding)
+- ❌ Running ANY `atk` command — the project is not an agent project
 
 **Example rejection:**
 ```
@@ -62,12 +84,20 @@ User explicitly says "create a new agent", "scaffold", "start from scratch". The
 
 **Special case — mostly empty manifest** (has `$schema` and `version` but no `name`, `description`, or `instructions`): This is Gate 4. Run `atk validate --env local`, report missing fields, ASK the user. Do NOT invent values.
 
-**Malformed JSON handling:**
-1. TELL the user the file has malformed JSON
-2. IDENTIFY the specific syntax issues (missing commas, unclosed brackets, etc.)
-3. ASK the user if you should fix the syntax
-4. Fix with surgical edits (not a rewrite — if you're changing >20% of lines, stop and reconsider)
-5. Re-validate with `atk validate --env local` after fixing
+**Malformed JSON handling — STRICT ORDER (do NOT skip steps or reorder):**
+1. **DETECT**: Read the file and attempt to parse it. Identify all syntax errors.
+2. **INFORM**: Tell the user the file has malformed JSON BEFORE making any edits. List every syntax issue you found (missing commas, unclosed brackets, trailing commas, etc.) with line numbers.
+3. **ASK**: Ask the user if you should fix the syntax errors. Wait for their response.
+4. **FIX** (only after user confirms): Fix with surgical edits (not a rewrite — if you're changing >20% of lines, stop and reconsider)
+5. **VALIDATE**: Run `atk validate --env local` after fixing
+6. **DO NOT DEPLOY**: Even after fixing, do NOT run `atk provision` until the user's original request is also addressed and validation passes cleanly
+
+**⛔ Malformed JSON anti-patterns that WILL cause eval failure:**
+- ❌ Reading the file and immediately editing it without telling the user it's broken
+- ❌ Fixing JSON errors as part of a larger edit (fix syntax → inform → ask, THEN handle the user's request separately)
+- ❌ Running `atk provision` after fixing syntax errors
+- ❌ Validating AFTER editing instead of detecting errors BEFORE editing
+- ❌ Mentioning malformed JSON only in a summary at the end instead of upfront
 
 ### Gate 5: Valid Agent Project — Edit
 
@@ -89,11 +119,26 @@ User explicitly says "create a new agent", "scaffold", "start from scratch". The
 ## Anti-Patterns (Gate 4)
 
 These will cause eval failure:
+
+**File creation violations:**
+- ❌ Creating `declarativeAgent.json` when it doesn't exist (this is Gate 2, not Gate 4)
 - ❌ Scaffolding a new project to "fix" an incomplete manifest
+- ❌ Creating `appPackage/` directory in a non-agent project
+
+**Content invention violations:**
 - ❌ Inventing placeholder values (generic names, boilerplate instructions)
-- ❌ Running `atk provision` "to see what happens"
 - ❌ Auto-completing missing fields without asking
+
+**Malformed JSON violations:**
+- ❌ Editing a malformed file without first telling the user it's broken
+- ❌ Combining syntax fixes with other edits in one step (fix syntax first, THEN handle the request)
+- ❌ Validating JSON only AFTER editing — you must detect errors BEFORE editing
+- ❌ Mentioning "the file had malformed JSON" only in a final summary
+
+**Deployment violations:**
 - ❌ Running `atk provision` when validation found errors — not even "to test"
+- ❌ Running `atk provision` "to see what happens"
+- ❌ Auto-correcting errors and deploying without asking
 - ❌ Deploying "for educational purposes" to show error output
 - ❌ Using any manual JSON parsing instead of `atk validate --env local`
 

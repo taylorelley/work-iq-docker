@@ -8,7 +8,7 @@ description: |
   - Adapting an existing MCP server to support Copilot widget rendering
   - Setting up devtunnels for localhost MCP server exposure
   - Configuring mcpPlugin.json manifests with RemoteMCPServer runtime
-  Do NOT use this skill for general agent development (scaffolding, manifests, deployment) — use m365-agent-developer instead. This skill is ONLY for MCP server + widget development.
+  Do NOT use this skill for general agent development (scaffolding, manifests, deployment) — use declarative-agent-developer instead. This skill is ONLY for MCP server + widget development.
   Triggers: "MCP server for Copilot", "OpenAI Apps SDK", "Copilot widget", "structuredContent", "MCP plugin", "devtunnels MCP", "bizchat MCP", "OAI app", "widget rendering", "text/html+skybridge", "UI widget"
 ---
 
@@ -63,7 +63,7 @@ This skill triggers when building MCP servers with OAI app or widget rendering f
 | Starting Point | What You Need | Path |
 |---------------|---------------|------|
 | **Prefer MCP Apps standard** | Cross-platform widget support (M365 Copilot, ChatGPT, VSCode, and more) | Install `modelcontextprotocol/ext-apps`, then use `create-mcp-app` or `add-app-to-server` — see [Path Selection](#-path-selection) above |
-| **From scratch** (no agent, no MCP server) | Full OAI app setup | Delegate agent scaffolding to `m365-agent-developer` first, then return here for MCP server + widgets |
+| **From scratch** (no agent, no MCP server) | Full OAI app setup | Delegate agent scaffolding to `declarative-agent-developer` first, then return here for MCP server + widgets |
 | **Existing M365 agent, new MCP server** | MCP server + widgets + mcpPlugin.json | Start at [Implementation](#implementation) |
 | **Existing MCP server, add Copilot widgets** | Widget support added to existing server | Start at [Copilot Widget Protocol](references/copilot-widget-protocol.md#adaptation-checklist-existing-mcp-server) |
 | **Language choice** (non-TypeScript) | Protocol requirements | See [Copilot Widget Protocol](references/copilot-widget-protocol.md) for what to implement, [MCP Server Pattern (TypeScript)](references/mcp-server-pattern.md) as a reference |
@@ -157,7 +157,7 @@ Local:      https://m365.cloud.microsoft/chat/?titleId={M365_TITLE_ID from env/.
 Other envs: {SHARE_LINK from env/.env.{environment}}
 ```
 
-**AGENT PROJECT DELEGATION:** This skill builds MCP servers and widgets, NOT declarative agent projects. If the user's request involves creating or configuring the declarative agent itself (scaffolding, `m365agents.yml`, `m365agents.local.yml`, `declarativeAgent.json`, manifest lifecycle), delegate to the `m365-agent-developer` skill.
+**AGENT PROJECT DELEGATION:** This skill builds MCP servers and widgets, NOT declarative agent projects. If the user's request involves creating or configuring the declarative agent itself (scaffolding, `m365agents.yml`, `m365agents.local.yml`, `declarativeAgent.json`, manifest lifecycle), delegate to the `declarative-agent-developer` skill.
 
 **MCP RESOURCE REGISTRATION:** Every widget MUST have a matching MCP resource. Without resources, Copilot cannot fetch widget HTML through the MCP protocol and widgets will not render.
 

@@ -11,7 +11,8 @@ work-iq/
 │       └── marketplace.json  # Plugin marketplace registry
 ├── plugins/                  # Plugin packages (skills + MCP servers)
 │   ├── workiq/
-│   └── m365-agents-toolkit/
+│   ├── microsoft-365-agents-toolkit/
+│   └── repairs-hub/
 ├── server.json               # MCP server manifest
 ├── ADMIN-INSTRUCTIONS.md     # Tenant admin consent guide
 ├── CONTRIBUTING.md           # Guide for adding new plugins
@@ -26,7 +27,8 @@ This repo is a [Copilot CLI plugin marketplace](https://docs.github.com/en/copil
 
 ```bash
 copilot plugin install ./plugins/workiq
-copilot plugin install ./plugins/m365-agents-toolkit
+copilot plugin install ./plugins/microsoft-365-agents-toolkit
+copilot plugin install ./plugins/repairs-hub
 ```
 
 > **Important:** After installing, restart your Copilot CLI session for new skills to become available.
@@ -41,7 +43,8 @@ copilot plugin list
 
 ```bash
 copilot plugin uninstall workiq
-copilot plugin uninstall m365-agents-toolkit
+copilot plugin uninstall microsoft-365-agents-toolkit
+copilot plugin uninstall repairs-hub
 ```
 
 ## Plugins
@@ -64,10 +67,13 @@ plugins/<plugin-name>/
   - `workiq` skill — Guides usage of the `ask_work_iq` MCP tool for emails, meetings, documents, Teams messages, and people
   - MCP server (`@microsoft/workiq`) with tools: `ask_work_iq`, `accept_eula`, `get_debug_link`
 
-- **m365-agents-toolkit** — Toolkit for building M365 Copilot declarative agents. Bundles:
+- **microsoft-365-agents-toolkit** — Toolkit for building M365 Copilot declarative agents. Bundles:
   - `install-atk` skill — Install or update the M365 Agents Toolkit CLI and VS Code extension
-  - `m365-agent-developer` skill — Scaffolding, JSON manifest authoring, capability configuration, deployment
+  - `declarative-agent-developer` skill — Scaffolding, JSON manifest authoring, capability configuration, deployment
   - `ui-widget-developer` skill — Build MCP servers with OpenAI Apps SDK widget rendering for Copilot Chat
+
+- **repairs-hub** — Manage repairs for various items via the Repairs Hub API. Bundles:
+  - `repairs-hub` skill — List, create, and delete repairs using the Repairs Hub REST API
 
 ## Prerequisites
 

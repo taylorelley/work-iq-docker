@@ -40,7 +40,7 @@ copilot
 
 # 3. Install any plugin
 /plugin install workiq@work-iq
-/plugin install m365-agents-toolkit@work-iq
+/plugin install microsoft-365-agents-toolkit@work-iq
 ```
 
 **That's it!** Restart Copilot CLI and start using the plugin:
@@ -153,7 +153,7 @@ workiq mcp
 | Plugin | Description |
 |--------|-------------|
 | [**workiq**](./plugins/workiq/) | Query Microsoft 365 data with natural language — emails, meetings, documents, Teams messages, and more. |
-| [**m365-agents-toolkit**](./plugins/m365-agents-toolkit/) | Toolkit for building M365 Copilot declarative agents — scaffolding, manifest authoring, and capability configuration. |
+| [**microsoft-365-agents-toolkit**](./plugins/microsoft-365-agents-toolkit/) | Toolkit for building M365 Copilot declarative agents — scaffolding, manifest authoring, and capability configuration. |
 
 ---
 

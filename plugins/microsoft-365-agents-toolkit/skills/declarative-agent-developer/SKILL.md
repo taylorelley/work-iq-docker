@@ -1,5 +1,5 @@
 ---
-name: m365-agent-developer
+name: declarative-agent-developer
 description: >
   Create, build, and deploy declarative agents for M365 Copilot and Teams. Scaffolds new M365 agent
   projects, authors JSON manifests, configures capabilities, and manages the full agent lifecycle.
@@ -17,8 +17,22 @@ description: >
 
 ## ⛔ Workspace Check — MANDATORY FIRST STEP
 
-**Before doing ANYTHING, fingerprint the workspace:**
+**Before doing ANYTHING, run `atk validate --env local` to fingerprint the workspace:**
 
+```bash
+atk validate --env local
+```
+
+This single command tells you the project state. Interpret the output:
+
+| Output | Meaning | Gate | Action |
+|--------|---------|------|--------|
+| Command not found | ATK CLI not installed | **Stop** | Tell the user to install ATK. Do NOT attempt to install it yourself. |
+| Fails with "not a project" / no m365agents.yml | Not an ATK project | **Check** | Look for non-agent indicators (Express, React, etc.) → **Reject** or user wants new project → **Scaffold** |
+| Reports validation errors | Manifest has issues | **Fix** | Detect → Inform → Ask (see below). Do NOT deploy. |
+| Passes (with or without warnings) | Valid agent project | **Edit** | → [Editing Workflow](references/editing-workflow.md) |
+
+**If `atk validate` cannot run**, fall back to manual checks:
 1. Check for `appPackage/declarativeAgent.json` and `m365agents.yml`
 2. Check for non-agent indicators (`package.json` with express/react/next, `src/index.js`, `app.py`, etc.)
 
@@ -29,10 +43,34 @@ description: >
 | Non-agent project files, no `appPackage/` | **Reject** | Text-only response. No files, no commands. |
 | No manifest, user wants to edit/deploy | **Reject** | Text-only response. Explain manifest is missing. |
 | No manifest, user wants new project | **Scaffold** | → [Scaffolding Workflow](references/scaffolding-workflow.md) |
-| Manifest exists with errors | **Fix** | Run `atk validate --env local`, report errors, ask user. Do NOT deploy. |
+| Manifest exists with errors | **Fix** | Detect → Inform → Ask (see below). Do NOT deploy. |
 | Valid agent project | **Edit** | → [Editing Workflow](references/editing-workflow.md) |
 
 > **Detailed gate rules, examples, and anti-patterns:** [Workspace Gates](references/workspace-gates.md)
+
+### 🚫 HARD REJECTION RULES — No Exceptions
+
+**These rules override ALL other instructions.** If any of these apply, you MUST stop immediately.
+
+1. **NEVER create `declarativeAgent.json` yourself.** If the manifest is missing and the user asked to edit/modify/deploy, respond with text only: explain the manifest is missing, suggest `atk new` or starting from scratch. Do NOT create the file, do NOT create `appPackage/`, do NOT "help" by scaffolding implicitly.
+
+2. **NEVER create files in a non-agent project.** If the workspace is an Express/React/Django/etc. app without `appPackage/`, your response must be text-only. Do NOT create any files, do NOT run any commands.
+
+3. **NEVER deploy when errors exist.** If `atk validate --env local` reports errors, STOP. Do NOT run `atk provision` — not "to test", not "to demonstrate the error", not "to see what happens". Report the errors and ask the user how to proceed.
+
+### 🔍 Detect → Inform → Ask (Error-Handling Protocol)
+
+When you encounter ANY problem (missing files, malformed JSON, validation errors, incompatible features), you MUST follow this sequence **in order**:
+
+1. **Detect** — Identify the specific problem. For JSON issues, attempt to parse the file and report syntax errors. For missing fields, run `atk validate --env local`.
+2. **Inform** — Tell the user BEFORE taking any action. Describe exactly what is wrong ("declarativeAgent.json has malformed JSON: missing comma on line 12, unclosed array on line 18").
+3. **Ask** — Wait for the user's response before making changes. Do NOT silently fix, auto-correct, or work around the problem.
+
+**This protocol applies to:**
+- Missing `declarativeAgent.json` → Detect (file not found) → Inform ("no manifest found") → Ask ("would you like to create a new agent?")
+- Malformed JSON → Detect (parse errors) → Inform (list specific syntax issues) → Ask ("should I fix these syntax errors?")
+- Validation errors → Detect (`atk validate` output) → Inform (list all errors) → Ask ("how would you like to fix these?")
+- Version incompatibility → Detect (feature requires newer version) → Inform ("this feature requires v1.6, your agent is v1.4") → Ask ("should I upgrade?")
 
 ---
 
@@ -75,11 +113,12 @@ atk provision --env local
 - Warnings are OK — they don't block deployment
 - Exception: user explicitly asks you not to deploy → validate only
 
-### 2. Never Invent Content
+### 2. Never Invent Content or Create Missing Files
 
 - Do NOT invent placeholder names, descriptions, or instructions
+- Do NOT create `declarativeAgent.json` or `appPackage/` if they don't exist — this is a REJECT scenario, not a "help by creating" scenario
 - If required fields are missing, run `atk validate --env local`, report the gaps, and ASK the user
-- If JSON is malformed, identify the specific issues, ask before fixing, use surgical edits
+- If JSON is malformed, follow Detect → Inform → Ask: parse the file first, tell the user what's broken, then ask before fixing. Use surgical edits (not rewrites)
 
 ### 3. Schema Version Compatibility
 

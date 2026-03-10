@@ -92,16 +92,87 @@ rmdir <project-name>
 - Confirm the ATK-created subfolder was removed
 - If the command fails, report the error and stop — do NOT retry automatically
 
-### Step 4: Confirm and Continue
+### Step 4: Add Agent Context Files
+
+**Action:** Ensure the project has context files that tell coding agents which skills are available and how to invoke them. This is critical for future sessions — without these files, agents won't know to use the `declarative-agent-developer` skill.
+
+**Detection logic — check for existing files in this order:**
+
+1. `.github/copilot-instructions.md` — if it exists, **edit it** to append the skill context block below
+2. `AGENTS.md` — if it exists, **edit it** to add the skill context block below
+3. `CLAUDE.md` (that is NOT a symlink) — if it exists, **edit it** to add the skill context block below
+4. **If NONE of the above exist** — create both:
+   - `AGENTS.md` — with the full content below
+   - `CLAUDE.md` — as a **symlink** to `AGENTS.md` (`ln -sf AGENTS.md CLAUDE.md`)
+
+**Content to add** (when editing an existing file, append this section; when creating `AGENTS.md`, use this as the full content):
+
+````markdown
+# M365 Declarative Agent Project
+
+This is an M365 Copilot declarative agent project managed by the ATK CLI.
+
+## Available Skills
+
+When working on this project, you MUST use the appropriate skill for the task. **Do NOT work directly on files without invoking a skill first.**
+
+| Skill | When to Use |
+|-------|-------------|
+| **declarative-agent-developer** | Any task involving this agent: editing manifests, adding/removing capabilities, adding plugins, updating instructions, deploying, validating, fixing errors. **This is the primary skill for this project.** |
+| **ui-widget-developer** | Only when adding an MCP server that renders rich interactive widgets (HTML) in Copilot Chat using the OpenAI Apps SDK. |
+| **install-atk** | Only when the ATK CLI is not installed or needs updating. |
+
+## ⛔ MANDATORY: Invoke `declarative-agent-developer` Skill First
+
+**For ANY task related to this agent project, you MUST invoke the `declarative-agent-developer` skill BEFORE doing any work.** This applies to:
+
+- Adding, removing, or modifying capabilities
+- Adding API plugins or MCP servers
+- Editing instructions or conversation starters
+- Validating or deploying the agent
+- Fixing manifest errors
+- Rewriting content for a new audience
+- Any edit to files in `appPackage/`
+
+**Do NOT:**
+- Edit `declarativeAgent.json` or other manifest files directly without the skill
+- Run `atk` commands without the skill
+- "Help" by manually making changes — always delegate to the skill
+
+## ⛔ MANDATORY: Run `atk validate --env local` as First Step
+
+When the `declarative-agent-developer` skill is invoked, the **very first action** must be:
+
+```bash
+atk validate --env local
+```
+
+This command serves as the project fingerprint:
+- ✅ If it succeeds (with or without warnings) → valid ATK project, proceed with the task
+- ❌ If it reports errors → manifest has issues, follow the Detect → Inform → Ask protocol
+- ❌ If it fails to run (command not found) → ATK CLI is not installed
+- ❌ If it fails with "not an ATK project" or similar → workspace is not an agent project
+
+**This replaces manual file-checking.** Let the ATK CLI tell you the project state.
+````
+
+**Rules:**
+- When editing an existing file, preserve all existing content — append the skill context block at the end
+- When creating new files, use the content above as-is
+- Always create the `CLAUDE.md` symlink when creating a new `AGENTS.md` — both GitHub Copilot CLI and Claude Code read these files automatically
+- This step is NOT optional — every scaffolded project must have agent context files
+
+### Step 5: Confirm and Continue
 
 **Action:** Provide a brief confirmation and immediately continue to the editing workflow.
 
 ```
-✅ Project created in current directory: <absolute-current-directory-path>
+✅ Project scaffolded in current directory: <absolute-current-directory-path>
 
-Your empty M365 Copilot agent project structure is ready (JSON-based).
+Your M365 Copilot agent project structure is ready (JSON-based).
+Agent context files have been added for future skill invocation.
 
-�� Continuing to help you design and implement your agent...
+🚀 Continuing to help you design and implement your agent...
 ```
 
 Then invoke the editing workflow — do NOT wait for user input.
@@ -110,7 +181,7 @@ Then invoke the editing workflow — do NOT wait for user input.
 
 ## Scope Boundaries
 
-This workflow **only** handles project creation. After scaffolding:
+This workflow **only** handles project creation and agent context setup. After scaffolding:
 
 - ✅ Confirm creation and hand off to the editing workflow automatically
 - ❌ Do NOT discuss architecture, capability selection, or API plugin design

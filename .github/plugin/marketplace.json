@@ -18,14 +18,14 @@
       ]
     },
     {
-      "name": "m365-agents-toolkit",
-      "source": "./plugins/m365-agents-toolkit",
+      "name": "microsoft-365-agents-toolkit",
+      "source": "./plugins/microsoft-365-agents-toolkit",
       "version": "1.0.0",
       "description": "Toolkit for building Microsoft 365 Copilot declarative agents — scaffolding, JSON manifest development, and capability configuration.",
       "skills": [
-        "./plugins/m365-agents-toolkit/skills/install-atk",
-        "./plugins/m365-agents-toolkit/skills/m365-agent-developer",
-        "./plugins/m365-agents-toolkit/skills/ui-widget-developer"
+        "./plugins/microsoft-365-agents-toolkit/skills/install-atk",
+        "./plugins/microsoft-365-agents-toolkit/skills/declarative-agent-developer",
+        "./plugins/microsoft-365-agents-toolkit/skills/ui-widget-developer"
       ]
     }
   ]

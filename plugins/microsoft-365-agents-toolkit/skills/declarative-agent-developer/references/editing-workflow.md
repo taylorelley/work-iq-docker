@@ -106,10 +106,16 @@ When you add, remove, or modify ANY capability or plugin, you MUST complete ALL 
 
 ### Step 3: Edit JSON Manifest Files
 
-**⚠️ BEFORE making any edits, check the schema version:**
-1. Read the `"version"` field in `declarativeAgent.json` (e.g., `"v1.4"`, `"v1.6"`)
-2. For EVERY feature you plan to add, verify it exists in that version using the [feature matrix](schema.md)
-3. If a requested feature requires a newer version → **STOP. Tell the user.** Offer to upgrade the version first.
+**⚠️ PRE-EDIT CHECK — Before making ANY edits, do BOTH of these:**
+
+1. **Check for malformed JSON**: Read `declarativeAgent.json` and verify it parses correctly. If it has syntax errors (missing commas, unclosed brackets, trailing commas, etc.):
+   - **STOP** — do NOT proceed with your edit
+   - **INFORM** the user: list every syntax issue with line numbers
+   - **ASK** the user if you should fix the syntax errors first
+   - Only after the user confirms, fix with surgical edits, then re-read the file
+   - Then continue with the user's original request as a separate step
+
+2. **Check the schema version**: Read the `"version"` field in `declarativeAgent.json` (e.g., `"v1.4"`, `"v1.6"`). For EVERY feature you plan to add, verify it exists in that version using the [feature matrix](schema.md). If a requested feature requires a newer version → **STOP. Tell the user.** Offer to upgrade the version first.
 
 **⛔ NEVER invent placeholder values.** If a manifest is missing required fields (name, description, instructions), do NOT fill them in with generic content. Ask the user to provide values. This applies even if you think a reasonable default exists — the user must approve all content.
 
