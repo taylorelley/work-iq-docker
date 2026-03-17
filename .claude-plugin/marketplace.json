@@ -1,1 +1,49 @@
-../.github/plugin/marketplace.json
+{
+  "name": "work-iq",
+  "metadata": {
+    "version": "1.0.0",
+    "description": "The official Microsoft Work IQ plugin collection"
+  },
+  "owner": {
+    "name": "Microsoft"
+  },
+  "plugins": [
+    {
+      "name": "workiq",
+      "source": "./plugins/workiq",
+      "version": "1.0.0",
+      "description": "Query Microsoft 365 data with natural language — emails, meetings, documents, Teams messages, and more.",
+      "skills": [
+        "./skills/workiq"
+      ]
+    },
+    {
+      "name": "microsoft-365-agents-toolkit",
+      "source": "./plugins/microsoft-365-agents-toolkit",
+      "version": "1.0.0",
+      "description": "Toolkit for building Microsoft 365 Copilot declarative agents — scaffolding, JSON manifest development, and capability configuration.",
+      "skills": [
+        "./skills/install-atk",
+        "./skills/declarative-agent-developer",
+        "./skills/ui-widget-developer"
+      ]
+    },
+    {
+      "name": "workiq-productivity",
+      "source": "./plugins/workiq-productivity",
+      "version": "1.0.0",
+      "description": "WorkIQ productivity skills powered by the local WorkIQ CLI — read-only insights across email, meetings, calendar, Teams, SharePoint, projects, and people.",
+      "skills": [
+        "./skills/action-item-extractor",
+        "./skills/daily-outlook-triage",
+        "./skills/email-analytics",
+        "./skills/meeting-cost-calculator",
+        "./skills/org-chart",
+        "./skills/multi-plan-search",
+        "./skills/site-explorer",
+        "./skills/channel-audit",
+        "./skills/channel-digest"
+      ]
+    }
+  ]
+}
