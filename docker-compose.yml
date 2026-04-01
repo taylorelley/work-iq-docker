@@ -1,0 +1,17 @@
+services:
+  workiq:
+    build:
+      context: .
+      args:
+        WORKIQ_VERSION: "0.2.8"
+    image: workiq-mcp:latest
+    stdin_open: true
+    ports:
+      - "3334:3334"
+    volumes:
+      # Named volume for portable token persistence.
+      # For host bind-mount instead: ${HOME}/.mcp-auth:/home/workiq/.mcp-auth
+      - mcp-auth:/home/workiq/.mcp-auth
+
+volumes:
+  mcp-auth:
