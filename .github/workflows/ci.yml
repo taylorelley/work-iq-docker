@@ -117,7 +117,7 @@ jobs:
               fi
 
               # Validate YAML frontmatter has name and description
-              frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill_file" | head -20)
+              frontmatter=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }; /^---$/q' "$skill_file")
               if ! echo "$frontmatter" | grep -q "^name:"; then
                 echo "ERROR: $skill_file missing 'name' in YAML frontmatter"
                 failed=1
