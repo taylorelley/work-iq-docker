@@ -1,0 +1,153 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  lint-shell:
+    name: Lint shell scripts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run ShellCheck
+        run: shellcheck docker-entrypoint.sh headless-auth.sh
+
+  validate-json:
+    name: Validate JSON files
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate JSON
+        shell: bash
+        run: |
+          set -e
+          failed=0
+          for f in server.json .github/plugin/marketplace.json; do
+            echo "Validating $f"
+            python3 -m json.tool "$f" > /dev/null || failed=1
+          done
+          while read -r f; do
+            echo "Validating $f"
+            python3 -m json.tool "$f" > /dev/null || failed=1
+          done < <(find plugins -name ".mcp.json")
+          exit $failed
+
+  lint-dockerfile:
+    name: Lint Dockerfile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.0.0
+        with:
+          dockerfile: Dockerfile
+
+  validate-plugins:
+    name: Validate plugin structure
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check plugin structure
+        shell: bash
+        run: |
+          set -e
+          failed=0
+
+          # Extract plugin info (source dir and skill paths) from marketplace.json
+          eval "$(python3 -c "
+          import json, shlex
+          with open('.github/plugin/marketplace.json') as f:
+              data = json.load(f)
+          sources = []
+          for p in data['plugins']:
+              src = p['source']
+              sources.append(src)
+              skills = p.get('skills', [])
+              # Emit a bash array for each plugin's skills
+              safe_src = src.replace('./', '').replace('/', '_').replace('-', '_')
+              print(f'SKILLS_{safe_src}=({\" \".join(shlex.quote(s) for s in skills)})')
+          print(f'PLUGINS=({\" \".join(shlex.quote(s) for s in sources)})')
+          ")"
+
+          for plugin_dir in "${PLUGINS[@]}"; do
+            name=$(basename "$plugin_dir")
+            echo "--- Checking plugin: $name ---"
+
+            if [ ! -d "$plugin_dir" ]; then
+              echo "ERROR: Plugin directory $plugin_dir does not exist"
+              failed=1
+              continue
+            fi
+
+            if [ ! -f "$plugin_dir/README.md" ]; then
+              echo "ERROR: $plugin_dir/README.md is missing"
+              failed=1
+            fi
+
+            # Get the skill paths array for this plugin
+            safe_src="${plugin_dir#./}"
+            safe_src="${safe_src//\//_}"
+            safe_src="${safe_src//-/_}"
+            eval "skill_paths=(\"\${SKILLS_${safe_src}[@]}\")"
+
+            if [ ${#skill_paths[@]} -eq 0 ]; then
+              echo "ERROR: No skills registered for $name in marketplace.json"
+              failed=1
+              continue
+            fi
+
+            # Validate each explicit skill path from marketplace.json
+            for skill_path in "${skill_paths[@]}"; do
+              if [ ! -d "$skill_path" ]; then
+                echo "ERROR: Skill directory $skill_path does not exist"
+                failed=1
+                continue
+              fi
+
+              skill_file="$skill_path/SKILL.md"
+              if [ ! -f "$skill_file" ]; then
+                echo "ERROR: $skill_file is missing"
+                failed=1
+                continue
+              fi
+
+              # Validate YAML frontmatter has name and description
+              frontmatter=$(sed -n '/^---$/,/^---$/{ /^---$/d; p; }; /^---$/q' "$skill_file")
+              if ! echo "$frontmatter" | grep -q "^name:"; then
+                echo "ERROR: $skill_file missing 'name' in YAML frontmatter"
+                failed=1
+              fi
+              if ! echo "$frontmatter" | grep -q "^description:"; then
+                echo "ERROR: $skill_file missing 'description' in YAML frontmatter"
+                failed=1
+              fi
+            done
+
+            echo "OK: $name"
+          done
+
+          exit $failed
+
+  docker-build:
+    name: Build and test Docker image
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: workiq-mcp:test
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Verify workiq is installed
+        run: docker run --rm workiq-mcp:test workiq --version
+      - name: Verify entrypoint help
+        run: docker run --rm workiq-mcp:test workiq --help
