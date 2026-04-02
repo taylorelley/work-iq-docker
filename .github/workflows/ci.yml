@@ -24,6 +24,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate JSON
+        shell: bash
         run: |
           set -e
           failed=0
@@ -31,10 +32,10 @@ jobs:
             echo "Validating $f"
             python3 -m json.tool "$f" > /dev/null || failed=1
           done
-          find plugins -name ".mcp.json" | while read -r f; do
+          while read -r f; do
             echo "Validating $f"
             python3 -m json.tool "$f" > /dev/null || failed=1
-          done
+          done < <(find plugins -name ".mcp.json")
           exit $failed
 
   lint-dockerfile:
@@ -52,20 +53,28 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Check plugin structure
+        shell: bash
         run: |
           set -e
           failed=0
 
-          # Extract plugin source paths from marketplace.json
-          PLUGINS=$(python3 -c "
-          import json
+          # Extract plugin info (source dir and skill paths) from marketplace.json
+          eval "$(python3 -c "
+          import json, shlex
           with open('.github/plugin/marketplace.json') as f:
               data = json.load(f)
+          sources = []
           for p in data['plugins']:
-              print(p['source'])
-          ")
+              src = p['source']
+              sources.append(src)
+              skills = p.get('skills', [])
+              # Emit a bash array for each plugin's skills
+              safe_src = src.replace('./', '').replace('/', '_')
+              print(f'SKILLS_{safe_src}=({\" \".join(shlex.quote(s) for s in skills)})')
+          print(f'PLUGINS=({\" \".join(shlex.quote(s) for s in sources)})')
+          ")"
 
-          for plugin_dir in $PLUGINS; do
+          for plugin_dir in "${PLUGINS[@]}"; do
             name=$(basename "$plugin_dir")
             echo "--- Checking plugin: $name ---"
 
@@ -80,26 +89,43 @@ jobs:
               failed=1
             fi
 
-            # Check for at least one SKILL.md
-            skill_count=$(find "$plugin_dir/skills" -name "SKILL.md" 2>/dev/null | wc -l)
-            if [ "$skill_count" -eq 0 ]; then
-              echo "ERROR: No SKILL.md files found in $plugin_dir/skills/"
+            # Get the skill paths array for this plugin
+            safe_src="${plugin_dir#./}"
+            safe_src="${safe_src//\//_}"
+            eval "skill_paths=(\"\${SKILLS_${safe_src}[@]}\")"
+
+            if [ ${#skill_paths[@]} -eq 0 ]; then
+              echo "ERROR: No skills registered for $name in marketplace.json"
               failed=1
+              continue
             fi
 
-            # Validate SKILL.md frontmatter has name and description
-            find "$plugin_dir/skills" -name "SKILL.md" 2>/dev/null | while read -r skill; do
-              # Extract YAML frontmatter (between --- delimiters)
-              frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill" | head -20)
+            # Validate each explicit skill path from marketplace.json
+            for skill_path in "${skill_paths[@]}"; do
+              if [ ! -d "$skill_path" ]; then
+                echo "ERROR: Skill directory $skill_path does not exist"
+                failed=1
+                continue
+              fi
+
+              skill_file="$skill_path/SKILL.md"
+              if [ ! -f "$skill_file" ]; then
+                echo "ERROR: $skill_file is missing"
+                failed=1
+                continue
+              fi
+
+              # Validate YAML frontmatter has name and description
+              frontmatter=$(sed -n '/^---$/,/^---$/p' "$skill_file" | head -20)
               if ! echo "$frontmatter" | grep -q "^name:"; then
-                echo "ERROR: $skill missing 'name' in YAML frontmatter"
-                exit 1
+                echo "ERROR: $skill_file missing 'name' in YAML frontmatter"
+                failed=1
               fi
               if ! echo "$frontmatter" | grep -q "^description:"; then
-                echo "ERROR: $skill missing 'description' in YAML frontmatter"
-                exit 1
+                echo "ERROR: $skill_file missing 'description' in YAML frontmatter"
+                failed=1
               fi
-            done || failed=1
+            done
 
             echo "OK: $name"
           done
